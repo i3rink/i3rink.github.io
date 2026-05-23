@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fairway — Greenkeeper Dashboard · Western Gailes</title>
+  <meta name="description" content="Private greenkeeper conditions dashboard for Western Gailes Golf Club." />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark: #1a3d2b;
+      --green-mid: #1a7a3d;
+      --green-light: #a8d5b5;
+      --green-pale: #e8f4ed;
+      --gold: #d4a017;
+      --danger: #b83232;
+      --warn-bg: #fef9ec;
+      --warn-border: #d4a017;
+      --warn-text: #6b4c00;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --text-tertiary: #999;
+      --bg-primary: #fff;
+      --bg-secondary: #f5f5f3;
+      --border: rgba(0,0,0,0.12);
+      --border-hover: rgba(0,0,0,0.25);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --up: #1a7a3d;
+      --down: #b83232;
+      --flat: #888;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text-primary: #f0f0ee;
+        --text-secondary: #a0a09a;
+        --text-tertiary: #666;
+        --bg-primary: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --border: rgba(255,255,255,0.1);
+        --border-hover: rgba(255,255,255,0.22);
+        --green-pale: rgba(26,61,43,0.4);
+        --warn-bg: rgba(212,160,23,0.12);
+        --warn-text: #e8c97a;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Top nav */
+    .topbar {
+      background: var(--green-dark);
+      padding: 0.875rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-logo { font-size: 18px; font-weight: 600; color: var(--green-light); }
+    .topbar-course { font-size: 12px; color: #6aab82; margin-top: 1px; }
+    .topbar-badge {
+      background: rgba(168,213,181,0.15); color: var(--green-light);
+      border: 0.5px solid rgba(168,213,181,0.3);
+      padding: 4px 10px; border-radius: 20px; font-size: 11px;
+    }
+
+    /* Main layout */
+    .main { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+    /* Alert */
+    .alert {
+      background: var(--warn-bg); border: 0.5px solid var(--warn-border);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      margin-bottom: 1.25rem; display: flex; gap: 10px; align-items: flex-start;
+    }
+    .alert i { color: var(--warn-border); font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .alert-text { font-size: 13px; color: var(--warn-text); line-height: 1.55; }
+    .alert-text strong { font-weight: 600; }
+
+    /* Metric cards */
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1.25rem; }
+    .metric-card { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 12px 14px; }
+    .metric-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+    .metric-val { font-size: 24px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+    .metric-sub { font-size: 11px; margin-top: 4px; }
+    .up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--flat); }
+
+    /* Section */
+    .section { margin-bottom: 1.75rem; }
+    .section-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 12px; }
+    .section-title span { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
+
+    /* Score bars */
+    .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+    .score-label { font-size: 12px; color: var(--text-secondary); width: 130px; flex-shrink: 0; }
+    .bar-bg { flex: 1; height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .score-num { font-size: 12px; font-weight: 500; color: var(--text-primary); width: 28px; text-align: right; }
+    .score-trend { font-size: 13px; width: 20px; text-align: center; }
+
+    /* Chart */
+    .chart-card {
+      background: var(--bg-primary); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .chart-legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+    .legend-swatch { width: 20px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+    .chart-wrap { position: relative; width: 100%; height: 200px; }
+
+    /* Two col */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+    .card {
+      background: var(--bg-primary); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1rem 1.25rem;
+    }
+    .card-title { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 10px; }
+    .card-note { font-size: 11px; color: var(--text-tertiary); margin-top: 10px; line-height: 1.5; }
+
+    /* Comments */
+    .comments { display: flex; flex-direction: column; gap: 8px; }
+    .comment {
+      background: var(--bg-primary); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); padding: 10px 14px;
+    }
+    .comment-meta { font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .comment-text { font-size: 13px; color: var(--text-primary); line-height: 1.55; }
+    .stars-small { color: var(--gold); font-size: 12px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .tab {
+      padding: 5px 14px; border-radius: 20px; font-size: 12px;
+      cursor: pointer; border: 0.5px solid var(--border-hover);
+      color: var(--text-secondary); background: var(--bg-primary);
+      transition: all 0.15s;
+    }
+    .tab.active { background: var(--green-dark); color: var(--green-light); border-color: var(--green-dark); }
+
+    @media (max-width: 600px) {
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col { grid-template-columns: 1fr; }
+      .score-label { width: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <div>
+      <div class="topbar-logo">⛳ Fairway</div>
+      <div class="topbar-course">Greenkeeper Dashboard · Western Gailes Golf Club</div>
+    </div>
+    <div class="topbar-badge">Private view</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- Alert -->
+    <div class="alert" role="alert">
+      <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+      <div class="alert-text">
+        <strong>Fairway firmness</strong> has dropped for the third consecutive week — now rated 2.1 / 5.
+        6 of the last 8 greenkeeper comments mention soft ground on the back nine.
+        Worth checking drainage on holes 12–15.
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="metric-grid" role="list" aria-label="Key performance indicators">
+      <div class="metric-card" role="listitem">
+        <div class="metric-label">Rounds logged</div>
+        <div class="metric-val">67</div>
+        <div class="metric-sub up">↑ 12 vs last month</div>
+      </div>
+      <div class="metric-card" role="listitem">
+        <div class="metric-label">Overall rating</div>
+        <div class="metric-val">3.8</div>
+        <div class="metric-sub flat">→ stable</div>
+      </div>
+      <div class="metric-card" role="listitem">
+        <div class="metric-label">Greens avg</div>
+        <div class="metric-val">4.1</div>
+        <div class="metric-sub up">↑ vs 3.7 last month</div>
+      </div>
+      <div class="metric-card" role="listitem">
+        <div class="metric-label">Fairways avg</div>
+        <div class="metric-val">2.6</div>
+        <div class="metric-sub down">↓ vs 3.1 last month</div>
+      </div>
+    </div>
+
+    <!-- Score bars -->
+    <div class="section">
+      <div class="section-title">
+        Condition scores — last 30 days
+        <span>(67 submissions)</span>
+      </div>
+
+      <div class="score-row">
+        <div class="score-label">Greens speed</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:82%; background:#1a7a3d;"></div></div>
+        <div class="score-num">4.1</div>
+        <div class="score-trend up">↑</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Greens firmness</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:74%; background:#1a7a3d;"></div></div>
+        <div class="score-num">3.7</div>
+        <div class="score-trend up">↑</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Greens surface</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:78%; background:#1a7a3d;"></div></div>
+        <div class="score-num">3.9</div>
+        <div class="score-trend flat">→</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Fairway condition</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:56%; background:#d4a017;"></div></div>
+        <div class="score-num">2.8</div>
+        <div class="score-trend down">↓</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Fairway firmness</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:42%; background:#b83232;"></div></div>
+        <div class="score-num">2.1</div>
+        <div class="score-trend down">↓</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Rough</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:64%; background:#1a7a3d;"></div></div>
+        <div class="score-num">3.2</div>
+        <div class="score-trend flat">→</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Bunkers</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:84%; background:#1a7a3d;"></div></div>
+        <div class="score-num">4.2</div>
+        <div class="score-trend up">↑</div>
+      </div>
+    </div>
+
+    <!-- Trend chart -->
+    <div class="chart-card">
+      <div class="tabs" role="tablist">
+        <div class="tab active" role="tab">Overall trend</div>
+        <div class="tab" role="tab">Greens</div>
+        <div class="tab" role="tab">Fairways</div>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#1a3d2b;"></div> Overall
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#1a7a3d; opacity:0.7;"></div> Greens
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#b83232; opacity:0.7;"></div> Fairways
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="trendChart"
+          role="img"
+          aria-label="Line chart showing course rating trends over 6 weeks. Overall rating rises from 3.4 to 3.8. Greens rise from 3.7 to 4.1. Fairways decline from 3.1 to 2.1.">
+          Overall: 3.4, 3.6, 3.2, 3.5, 3.7, 3.8. Greens: 3.7, 3.9, 3.8, 4.0, 4.1, 4.1. Fairways: 3.1, 2.9, 2.7, 2.8, 2.5, 2.1.
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Two column insights -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Ratings by time of day</div>
+        <div class="score-row" style="margin-bottom:6px;">
+          <div class="score-label" style="width:80px;">Morning</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:86%; background:#1a7a3d;"></div></div>
+          <div class="score-num">4.3</div>
+        </div>
+        <div class="score-row" style="margin-bottom:6px;">
+          <div class="score-label" style="width:80px;">Afternoon</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:70%; background:#d4a017;"></div></div>
+          <div class="score-num">3.5</div>
+        </div>
+        <div class="score-row">
+          <div class="score-label" style="width:80px;">Evening</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:60%; background:#d4a017;"></div></div>
+          <div class="score-num">3.0</div>
+        </div>
+        <div class="card-note">Morning rounds outrate afternoon by 0.8 pts — greens speed after foot traffic is the likely driver.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Ratings by tees played</div>
+        <div class="score-row" style="margin-bottom:6px;">
+          <div class="score-label" style="width:80px;">White tees</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:72%; background:#1a7a3d;"></div></div>
+          <div class="score-num">3.6</div>
+        </div>
+        <div class="score-row" style="margin-bottom:6px;">
+          <div class="score-label" style="width:80px;">Yellow tees</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:80%; background:#1a7a3d;"></div></div>
+          <div class="score-num">4.0</div>
+        </div>
+        <div class="score-row">
+          <div class="score-label" style="width:80px;">Red tees</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:84%; background:#1a7a3d;"></div></div>
+          <div class="score-num">4.2</div>
+        </div>
+        <div class="card-note">White tee fairway ratings lag — longer carry over soft ground is the likely cause.</div>
+      </div>
+    </div>
+
+    <!-- Comments feed -->
+    <div class="section">
+      <div class="section-title">
+        Recent greenkeeper comments
+        <span>(last 7 days, moderated)</span>
+      </div>
+      <div class="comments">
+        <div class="comment">
+          <div class="comment-meta">
+            <span>Yesterday · Morning · White tees · Overcast</span>
+            <span class="stars-small">★★★★</span><span style="font-size:11px;">4 overall</span>
+          </div>
+          <div class="comment-text">Greens were excellent — holding well and rolling true. Fairways on the back nine pretty soft underfoot, especially around 13 and 14. Bunkers beautifully raked.</div>
+        </div>
+        <div class="comment">
+          <div class="comment-meta">
+            <span>2 days ago · Afternoon · Yellow tees · Sunny</span>
+            <span class="stars-small">★★★★</span><span style="font-size:11px;">4 overall</span>
+          </div>
+          <div class="comment-text">Course in great nick considering the rain last week. 7th green was a bit patchy near the front fringe but nothing major. Really enjoyed it.</div>
+        </div>
+        <div class="comment">
+          <div class="comment-meta">
+            <span>3 days ago · Morning · White tees · Light rain</span>
+            <span class="stars-small">★★★</span><span style="font-size:11px;">3 overall</span>
+          </div>
+          <div class="comment-text">Fairways holding a lot of water — ground very soft especially holes 12 through 15. Greens were good. Rough getting a bit long on right side of 4th and 5th.</div>
+        </div>
+        <div class="comment">
+          <div class="comment-meta">
+            <span>5 days ago · Morning · Red tees · Sunny</span>
+            <span class="stars-small">★★★★★</span><span style="font-size:11px;">5 overall</span>
+          </div>
+          <div class="comment-text">Best condition I've seen the course in years. Greens fast and true. Whoever's doing the work on the bunkers deserves credit — perfect.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const textCol = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)';
+    const gridCol = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6'],
+        datasets: [
+          {
+            label: 'Overall',
+            data: [3.4, 3.6, 3.2, 3.5, 3.7, 3.8],
+            borderColor: '#1a3d2b',
+            backgroundColor: 'rgba(26,61,43,0.07)',
+            fill: true, tension: 0.4,
+            pointBackgroundColor: '#1a3d2b',
+            pointRadius: 4, borderWidth: 2
+          },
+          {
+            label: 'Greens',
+            data: [3.7, 3.9, 3.8, 4.0, 4.1, 4.1],
+            borderColor: '#1a7a3d',
+            backgroundColor: 'transparent',
+            tension: 0.4,
+            pointBackgroundColor: '#1a7a3d',
+            pointRadius: 3, borderWidth: 1.5,
+            borderDash: [5, 3]
+          },
+          {
+            label: 'Fairways',
+            data: [3.1, 2.9, 2.7, 2.8, 2.5, 2.1],
+            borderColor: '#b83232',
+            backgroundColor: 'transparent',
+            tension: 0.4,
+            pointBackgroundColor: '#b83232',
+            pointRadius: 3, borderWidth: 1.5,
+            borderDash: [2, 2]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            min: 1.5, max: 5,
+            ticks: { color: textCol, font: { size: 11 }, stepSize: 1 },
+            grid: { color: gridCol },
+            border: { display: false }
+          },
+          x: {
+            ticks: { color: textCol, font: { size: 11 } },
+            grid: { display: false },
+            border: { display: false }
+          }
+        }
+      }
+    });
+
+    // Tab switching (placeholder — wire to real data in production)
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

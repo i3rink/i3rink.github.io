@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fairway — Log Your Round · Western Gailes</title>
+  <meta name="description" content="Log your round conditions at Western Gailes and earn pro shop points." />
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark: #1a3d2b;
+      --green-mid: #1a7a3d;
+      --green-light: #a8d5b5;
+      --green-pale: #e8f4ed;
+      --gold: #d4a017;
+      --danger: #b83232;
+      --warn: #d4a017;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --text-tertiary: #999;
+      --bg-primary: #fff;
+      --bg-secondary: #f5f5f3;
+      --border: rgba(0,0,0,0.12);
+      --border-hover: rgba(0,0,0,0.25);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text-primary: #f0f0ee;
+        --text-secondary: #a0a09a;
+        --text-tertiary: #666;
+        --bg-primary: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --border: rgba(255,255,255,0.1);
+        --border-hover: rgba(255,255,255,0.22);
+        --green-pale: rgba(26,61,43,0.4);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding-bottom: 2rem;
+    }
+
+    /* Header */
+    .header {
+      background: var(--green-dark);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .logo { font-size: 22px; font-weight: 600; color: var(--green-light); letter-spacing: -0.5px; }
+    .course-name { font-size: 13px; color: #6aab82; margin-top: 2px; }
+    .points-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(168,213,181,0.15);
+      border: 0.5px solid rgba(168,213,181,0.3);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 12px; color: var(--green-light); margin-top: 10px;
+    }
+
+    /* Progress dots */
+    .step-dots { display: flex; gap: 4px; justify-content: center; margin-bottom: 1.25rem; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-hover); }
+    .dot.active { background: var(--green-dark); }
+
+    /* Sections */
+    .section { margin-bottom: 1.5rem; }
+    .section-label {
+      font-size: 11px; font-weight: 600; color: var(--text-secondary);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
+    }
+    .divider { height: 0.5px; background: var(--border); margin: 1.25rem 0; }
+
+    /* Cards */
+    .row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .metric {
+      flex: 1;
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+    }
+    .metric-name { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+
+    /* Pill selectors */
+    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pill {
+      padding: 6px 12px; border-radius: 20px;
+      border: 0.5px solid var(--border-hover);
+      font-size: 12px; cursor: pointer;
+      color: var(--text-secondary); background: var(--bg-primary);
+      transition: all 0.15s; user-select: none;
+    }
+    .pill.selected { background: var(--green-dark); color: var(--green-light); border-color: var(--green-dark); }
+
+    /* Stars */
+    .stars { display: flex; gap: 3px; }
+    .star { font-size: 22px; cursor: pointer; color: var(--border); transition: color 0.1s; line-height: 1; }
+    .star.active { color: var(--gold); }
+
+    /* Overall */
+    .overall-box {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .overall-label { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+    .big-stars { display: flex; gap: 6px; justify-content: center; }
+    .big-star { font-size: 32px; cursor: pointer; color: var(--border); transition: color 0.12s; }
+    .big-star.active { color: var(--gold); }
+
+    /* Textarea */
+    textarea {
+      width: 100%; border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px; font-size: 13px;
+      font-family: inherit; color: var(--text-primary);
+      background: var(--bg-primary); resize: none; height: 72px;
+    }
+    textarea::placeholder { color: var(--text-tertiary); }
+    textarea:focus { outline: none; border-color: var(--green-mid); }
+    .char-count { font-size: 11px; color: var(--text-tertiary); text-align: right; margin-top: 3px; }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%; background: var(--green-dark); color: var(--green-light);
+      border: none; border-radius: var(--radius-md);
+      padding: 14px; font-size: 15px; font-weight: 500;
+      cursor: pointer; margin-top: 0.5rem; transition: opacity 0.15s;
+    }
+    .submit-btn:hover { opacity: 0.9; }
+    .submit-btn:active { opacity: 0.8; }
+
+    /* Success screen */
+    .success {
+      display: none; text-align: center;
+      background: var(--bg-primary); border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border); padding: 2rem 1.5rem;
+      margin-top: 1rem;
+    }
+    .success.visible { display: block; }
+    .success-icon { font-size: 48px; margin-bottom: 1rem; }
+    .success-title { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+    .success-body { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .success-pts {
+      display: inline-block; background: var(--green-pale);
+      color: var(--green-dark); font-weight: 600; font-size: 18px;
+      padding: 10px 24px; border-radius: var(--radius-md); margin: 1rem 0;
+    }
+
+    .form-body.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="header">
+      <div class="logo">⛳ Fairway</div>
+      <div class="course-name">Western Gailes Golf Club · 18 holes played</div>
+      <div class="points-pill">
+        <i class="ti ti-award"></i> +50 pts on submission
+      </div>
+    </div>
+
+    <div class="step-dots">
+      <div class="dot active"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+    </div>
+
+    <div class="form-body" id="formBody">
+
+      <!-- Your Round -->
+      <div class="section">
+        <div class="section-label">Your round</div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Tees played</div>
+            <div class="pill-group" id="tees">
+              <div class="pill" onclick="pick(this,'tees')">Yellow</div>
+              <div class="pill selected" onclick="pick(this,'tees')">White</div>
+              <div class="pill" onclick="pick(this,'tees')">Red</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Time of round</div>
+            <div class="pill-group" id="time">
+              <div class="pill selected" onclick="pick(this,'time')">Morning</div>
+              <div class="pill" onclick="pick(this,'time')">Afternoon</div>
+              <div class="pill" onclick="pick(this,'time')">Evening</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Weather</div>
+            <div class="pill-group" id="weather">
+              <div class="pill" onclick="pick(this,'weather')">Sunny</div>
+              <div class="pill selected" onclick="pick(this,'weather')">Overcast</div>
+              <div class="pill" onclick="pick(this,'weather')">Light rain</div>
+              <div class="pill" onclick="pick(this,'weather')">Windy</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Pace of play</div>
+            <div class="pill-group" id="pace">
+              <div class="pill" onclick="pick(this,'pace')">Quiet</div>
+              <div class="pill selected" onclick="pick(this,'pace')">Normal</div>
+              <div class="pill" onclick="pick(this,'pace')">Busy</div>
+              <div class="pill" onclick="pick(this,'pace')">Slow — delays</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Greens -->
+      <div class="section">
+        <div class="section-label">Greens</div>
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Speed</div>
+            <div class="stars" id="greens-speed">
+              <span class="star active" onclick="rate('greens-speed',1)">★</span>
+              <span class="star active" onclick="rate('greens-speed',2)">★</span>
+              <span class="star active" onclick="rate('greens-speed',3)">★</span>
+              <span class="star active" onclick="rate('greens-speed',4)">★</span>
+              <span class="star" onclick="rate('greens-speed',5)">★</span>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-name">Firmness</div>
+            <div class="stars" id="greens-firm">
+              <span class="star active" onclick="rate('greens-firm',1)">★</span>
+              <span class="star active" onclick="rate('greens-firm',2)">★</span>
+              <span class="star active" onclick="rate('greens-firm',3)">★</span>
+              <span class="star" onclick="rate('greens-firm',4)">★</span>
+              <span class="star" onclick="rate('greens-firm',5)">★</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Surface quality</div>
+            <div class="stars" id="greens-surf">
+              <span class="star active" onclick="rate('greens-surf',1)">★</span>
+              <span class="star active" onclick="rate('greens-surf',2)">★</span>
+              <span class="star active" onclick="rate('greens-surf',3)">★</span>
+              <span class="star active" onclick="rate('greens-surf',4)">★</span>
+              <span class="star" onclick="rate('greens-surf',5)">★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fairways & Rough -->
+      <div class="section">
+        <div class="section-label">Fairways &amp; rough</div>
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Fairway condition</div>
+            <div class="stars" id="fairway-cond">
+              <span class="star active" onclick="rate('fairway-cond',1)">★</span>
+              <span class="star active" onclick="rate('fairway-cond',2)">★</span>
+              <span class="star active" onclick="rate('fairway-cond',3)">★</span>
+              <span class="star" onclick="rate('fairway-cond',4)">★</span>
+              <span class="star" onclick="rate('fairway-cond',5)">★</span>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-name">Fairway firmness</div>
+            <div class="stars" id="fairway-firm">
+              <span class="star active" onclick="rate('fairway-firm',1)">★</span>
+              <span class="star active" onclick="rate('fairway-firm',2)">★</span>
+              <span class="star" onclick="rate('fairway-firm',3)">★</span>
+              <span class="star" onclick="rate('fairway-firm',4)">★</span>
+              <span class="star" onclick="rate('fairway-firm',5)">★</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="metric">
+            <div class="metric-name">Rough</div>
+            <div class="stars" id="rough">
+              <span class="star active" onclick="rate('rough',1)">★</span>
+              <span class="star active" onclick="rate('rough',2)">★</span>
+              <span class="star active" onclick="rate('rough',3)">★</span>
+              <span class="star" onclick="rate('rough',4)">★</span>
+              <span class="star" onclick="rate('rough',5)">★</span>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-name">Bunkers</div>
+            <div class="stars" id="bunkers">
+              <span class="star active" onclick="rate('bunkers',1)">★</span>
+              <span class="star active" onclick="rate('bunkers',2)">★</span>
+              <span class="star active" onclick="rate('bunkers',3)">★</span>
+              <span class="star active" onclick="rate('bunkers',4)">★</span>
+              <span class="star" onclick="rate('bunkers',5)">★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Overall -->
+      <div class="overall-box">
+        <div class="overall-label">Overall rating</div>
+        <div class="big-stars" id="overall">
+          <span class="big-star active" onclick="rate('overall',1)">★</span>
+          <span class="big-star active" onclick="rate('overall',2)">★</span>
+          <span class="big-star active" onclick="rate('overall',3)">★</span>
+          <span class="big-star active" onclick="rate('overall',4)">★</span>
+          <span class="big-star" onclick="rate('overall',5)">★</span>
+        </div>
+      </div>
+
+      <!-- Greenkeeper note -->
+      <div class="section">
+        <div class="section-label">
+          Anything for the greenkeeper?
+          <span style="font-weight:400; text-transform:none; letter-spacing:0;">(optional)</span>
+        </div>
+        <textarea id="notes" placeholder="Specific feedback the greenkeeper should know about..." maxlength="280" oninput="updateCount()"></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 280</div>
+      </div>
+
+      <button class="submit-btn" onclick="submitForm()">
+        Log my round — earn 50 pts
+      </button>
+    </div>
+
+    <!-- Success screen -->
+    <div class="success" id="successScreen">
+      <div class="success-icon">⛳</div>
+      <div class="success-title">Round logged!</div>
+      <div class="success-pts">+50 points added</div>
+      <div class="success-body">
+        Thanks for helping the Western Gailes community.<br>
+        Your conditions report will appear on the course dashboard within 2 hours.<br><br>
+        <strong>Balance: 350 pts</strong> — 150 pts until your next £5 voucher.
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function pick(el, group) {
+      document.querySelectorAll('#' + group + ' .pill').forEach(p => p.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function rate(id, val) {
+      const container = document.getElementById(id);
+      const stars = container.querySelectorAll('.star, .big-star');
+      stars.forEach((s, i) => s.classList.toggle('active', i < val));
+      container.dataset.val = val;
+    }
+
+    function updateCount() {
+      document.getElementById('charCount').textContent =
+        document.getElementById('notes').value.length;
+    }
+
+    function collectData() {
+      const getVal = id => parseInt(document.getElementById(id)?.dataset?.val || 0);
+      const getPill = id => document.querySelector('#' + id + ' .pill.selected')?.textContent?.trim() || '';
+      return {
+        tees: getPill('tees'),
+        time: getPill('time'),
+        weather: getPill('weather'),
+        pace: getPill('pace'),
+        greens_speed: getVal('greens-speed'),
+        greens_firmness: getVal('greens-firm'),
+        greens_surface: getVal('greens-surf'),
+        fairway_condition: getVal('fairway-cond'),
+        fairway_firmness: getVal('fairway-firm'),
+        rough: getVal('rough'),
+        bunkers: getVal('bunkers'),
+        overall: getVal('overall'),
+        notes: document.getElementById('notes').value,
+        submitted_at: new Date().toISOString(),
+        course: 'western-gailes'
+      };
+    }
+
+    function submitForm() {
+      const data = collectData();
+      console.log('Submission payload:', JSON.stringify(data, null, 2));
+      // TODO: POST to Supabase endpoint
+      // fetch('/api/submit', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } })
+      document.getElementById('formBody').classList.add('hidden');
+      document.getElementById('successScreen').classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
