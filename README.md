@@ -1,5 +1,5 @@
-⛳ Fairway — Western Gailes Course Conditions
-This is a prototype. Nothing here is live or connected to a real database — it's a demo to show you what a finished product might look like.
+⛳ Fairway - Western Gailes Course Conditions
+This is a prototype. Nothing here is live or connected to a real database — it's a demo and Ive used your course becuase its familiar to you Its really to show you what a finished product might look like.
 
 What you're looking at
 Two pages built specifically to show you the concept:
