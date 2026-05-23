@@ -1,15 +1,57 @@
-⛳ Fairway App (working title) - Western Gailes Course Conditions This is a prototype. Nothing here is live or connected to a real database — it's a demo and Ive used your course becuase its familiar to you Its really to show you what a finished product might look like.
-
-What you're looking at is two pages from the app built to show you the concept
-
-For the golfer After finishing their round, a player scans a code (either at the 18th green, the clubhouse bar, locker room etc). It opens a simple form on their phone — no app to download, no account required first. They rate the greens, fairways, bunkers and overall experience, take less than 90 seconds, and in return for their feedback they earn points redeemable as pro shop vouchers. The better the data they give, the more the platform is worth to everyone.
-
-Golfer form — what your members would see: Click below https://i3rink.github.io/golfer/
-
-For the greenkeeper Every submission feeds into a private dashboard only you guys see. Instead of hearing about problems second-hand, you get structured, timestamped feedback from real players — greens speed trending down, fairways soft on the back nine, bunkers consistently well rated. The dashboard shows you what's improving, what isn't, and what players are specifically flagging for your attention. It doesn't replace your judgement — it just means you're potentially working with more information than you had before.
-
-Greenkeeper dashboard — your private view: Click below https://i3rink.github.io/greenkeeper/
-
-Both open in your phone browser. No app to download, no account needed.
-
-The one question I'd love your answer to is would this dashboard actually be useful to you day to day — or does it tell you things you already know? Specifically: does the idea of seeing structured player feedback before it becomes a complaint through the club solve a real problem, or is that not how issues normally reach you? Honest answer is more useful than a polite one.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fairway — Western Gailes</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f5f3; padding: 1.5rem 1rem 2rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .wrap { max-width: 480px; margin: 0 auto; }
+    .header { text-align: center; padding: 1.5rem 0 1rem; }
+    .logo { font-size: 32px; margin-bottom: 8px; }
+    .title { font-size: 20px; font-weight: 600; color: #1a3d2b; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #888; }
+    .proto { display: inline-block; background: #fff3cd; color: #7a5c00; border: 0.5px solid #d4a017; border-radius: 20px; font-size: 11px; font-weight: 500; padding: 3px 10px; margin-top: 8px; }
+    .intro { background: white; border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.1); padding: 1.25rem; margin: 1rem 0; font-size: 14px; color: #444; line-height: 1.65; }
+    .section { background: white; border-radius: 12px; border: 0.5px solid rgba(0,0,0,0.1); padding: 1.25rem; margin-bottom: 10px; }
+    .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: #999; margin-bottom: 8px; }
+    .section-body { font-size: 14px; color: #444; line-height: 1.65; margin-bottom: 14px; }
+    .btn { display: block; text-decoration: none; padding: 14px 16px; border-radius: 8px; font-size: 15px; font-weight: 500; text-align: center; }
+    .btn-golfer { background: #1a3d2b; color: #a8d5b5; }
+    .btn-gk { background: #f5f5f3; color: #1a3d2b; border: 0.5px solid #ccc; margin-top: 8px; }
+    .question { background: #e8f4ed; border-radius: 12px; border: 0.5px solid rgba(26,61,43,0.2); padding: 1.25rem; margin-top: 10px; }
+    .q-label { font-size: 12px; font-weight: 600; color: #1a3d2b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .q-body { font-size: 14px; color: #2d5a3d; line-height: 1.65; }
+    .note { font-size: 12px; color: #999; text-align: center; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="logo">⛳</div>
+      <div class="title">Fairway — Western Gailes</div>
+      <div class="subtitle">Course conditions app</div>
+      <div class="proto">Prototype — demo only</div>
+    </div>
+    <div class="intro">
+      Nothing here is live or connected to a real database. I've used Western Gailes because it's familiar to you — it's really just to show what a finished product might look like.
+    </div>
+    <div class="section">
+      <div class="section-label">For the golfer</div>
+      <div class="section-body">After finishing their round, a player scans a code at the 18th green, the clubhouse bar, locker room — wherever. It opens a simple form on their phone. No app to download, no account required. They rate the greens, fairways, bunkers and overall experience in under 90 seconds, and earn points redeemable as pro shop vouchers. The better the data they give, the more the platform is worth to everyone.</div>
+      <a class="btn btn-golfer" href="golfer/">Open golfer form →</a>
+    </div>
+    <div class="section">
+      <div class="section-label">For the greenkeeper</div>
+      <div class="section-body">Every submission feeds into a private dashboard only you can see. Instead of hearing about problems second-hand, you get structured, timestamped feedback from real players — greens speed trending down, fairways soft on the back nine, bunkers consistently well rated. The dashboard shows what's improving, what isn't, and what players are flagging for your attention. It doesn't replace your judgement — it just means you're working with more information than you had before.</div>
+      <a class="btn btn-gk" href="greenkeeper/">Open greenkeeper dashboard →</a>
+    </div>
+    <div class="question">
+      <div class="q-label">The one question I'd love your answer to</div>
+      <div class="q-body">Would this dashboard actually be useful to you day to day — or does it tell you things you already know? Does seeing structured player feedback before it becomes a complaint through the club solve a real problem, or is that not how issues normally reach you? Honest answer is more useful than a polite one.</div>
+    </div>
+    <div class="note">Both pages open in your phone browser. No app, no account needed.</div>
+  </div>
+</body>
+</html>
